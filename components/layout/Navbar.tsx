@@ -1,60 +1,57 @@
 "use client";
+
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, BookOpen } from "lucide-react";
 
-import { navLinks, companyInfo } from "@/data/general.static";
-import { ThemeSwitch } from "@/components";
-import { logo } from "@/data/constants";
+import { ProfileDropdown, LogoutModal } from "@/components";
+import type { CurrentUser } from "@/types/user.types";
+import { navLinks } from "@/data/general.static";
 
-type RefType = HTMLDivElement | null;
-type ButtonRefType = HTMLButtonElement | null;
+interface NavbarProps {
+    isAuthenticated?: boolean;
+    user?: CurrentUser | null;
+}
 
-const Navbar: React.FC = () => {
+const Navbar = ({ isAuthenticated = false, user = null }: NavbarProps) => {
     const [navbarActive, setNavbarActive] = useState<boolean>(true);
     const [mobileNavMenuActive, setMobileNavMenuActive] = useState<boolean>(false);
+    const [showLogoutModal, setShowLogoutModal] = useState<boolean>(false);
+    const [isLoggingOut, setIsLoggingOut] = useState<boolean>(false);
     const [lastScrollY, setLastScrollY] = useState<number>(0);
     const [showBg, setShowBg] = useState<boolean>(false);
 
-    const mobileMenuRef = useRef<RefType | null>(null);
-    const closeButtonRef = useRef<ButtonRefType | null>(null);
-    const menuButtonRef = useRef<ButtonRefType | null>(null);
-    const skipLinkRef = useRef<HTMLAnchorElement | null>(null);
+    const mobileMenuRef = useRef<HTMLDivElement>(null);
+    const closeButtonRef = useRef<HTMLButtonElement>(null);
+    const menuButtonRef = useRef<HTMLButtonElement>(null);
 
     const pathname = usePathname();
 
-    // Memoized close menu function to prevent unnecessary re-renders
     const closeMobileMenu = useCallback(() => {
         setMobileNavMenuActive(false);
-        // Return focus to menu button when closing
         setTimeout(() => {
             menuButtonRef.current?.focus();
         }, 100);
     }, []);
 
-    // Enhanced scroll handling with reduced motion support
+    // Scroll handling with performance optimization
     useEffect(() => {
-        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        let ticking = false;
 
         const handleScroll = () => {
             const currentScrollY = window.scrollY;
 
-            if (!prefersReducedMotion) {
-                if (currentScrollY > lastScrollY && currentScrollY > 100) {
-                    setNavbarActive(false);
-                } else {
-                    setNavbarActive(true);
-                }
+            if (currentScrollY > lastScrollY && currentScrollY > 100) {
+                setNavbarActive(false);
+            } else {
+                setNavbarActive(true);
             }
 
             setShowBg(currentScrollY > 50);
             setLastScrollY(currentScrollY);
         };
 
-        // Throttle scroll events for performance
-        let ticking = false;
         const throttledScroll = () => {
             if (!ticking) {
                 requestAnimationFrame(() => {
@@ -69,52 +66,38 @@ const Navbar: React.FC = () => {
         return () => window.removeEventListener("scroll", throttledScroll);
     }, [lastScrollY]);
 
-    // Enhanced body scroll and ARIA management
+    // Body scroll lock for mobile menu
     useEffect(() => {
-        const body = document.body;
-        const main = document.querySelector("main");
-
         if (mobileNavMenuActive) {
-            // Store original overflow value
-            const originalOverflow = body.style.overflow;
+            document.body.style.overflow = "hidden";
+            const main = document.querySelector("main");
+            if (main) main.setAttribute("aria-hidden", "true");
 
-            body.style.overflow = "hidden";
-            body.setAttribute("data-mobile-nav-open", "true");
-
-            if (main) {
-                main.setAttribute("aria-hidden", "true");
-                main.setAttribute("inert", ""); // Prevent interaction with background content
-            }
-
-            // Focus management
             setTimeout(() => {
                 closeButtonRef.current?.focus();
             }, 100);
-
-            return () => {
-                body.style.overflow = originalOverflow;
-                body.removeAttribute("data-mobile-nav-open");
-                if (main) {
-                    main.removeAttribute("aria-hidden");
-                    main.removeAttribute("inert");
-                }
-            };
+        } else {
+            document.body.style.overflow = "";
+            const main = document.querySelector("main");
+            if (main) main.removeAttribute("aria-hidden");
         }
+
+        return () => {
+            document.body.style.overflow = "";
+        };
     }, [mobileNavMenuActive]);
 
-    // Enhanced keyboard event handling
+    // Keyboard handling
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            // Global escape key handler
             if (e.key === "Escape" && mobileNavMenuActive) {
-                e.preventDefault();
                 closeMobileMenu();
             }
 
             // Focus trap for mobile menu
             if (mobileNavMenuActive && mobileMenuRef.current && e.key === "Tab") {
                 const focusableElements = mobileMenuRef.current.querySelectorAll<HTMLElement>(
-                    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+                    'button, [href], [tabindex]:not([tabindex="-1"])'
                 );
 
                 const firstElement = focusableElements[0];
@@ -134,250 +117,248 @@ const Navbar: React.FC = () => {
         return () => document.removeEventListener("keydown", handleKeyDown);
     }, [mobileNavMenuActive, closeMobileMenu]);
 
-    // Skip to main content handler
-    const handleSkipToMain = (e: React.MouseEvent | React.KeyboardEvent) => {
-        e.preventDefault();
-        const main = document.querySelector("main");
-        if (main) {
-            main.focus();
-            main.scrollIntoView({ behavior: 'smooth' });
+    // Logout handlers
+    const handleLogoutClick = () => {
+        setShowLogoutModal(true);
+    };
+
+    const handleLogoutConfirm = async () => {
+        setIsLoggingOut(true);
+        try {
+            // TODO: Replace with actual logout API call
+            const response = await fetch("/api/auth/logout", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+            });
+
+            if (response.ok) {
+                window.location.href = "/";
+            } else {
+                console.error("Logout failed");
+                window.location.href = "/";
+            }
+        } catch (error) {
+            console.error("Logout error:", error);
+            window.location.href = "/";
+        } finally {
+            setIsLoggingOut(false);
+        }
+    };
+
+    const handleLogoutCancel = () => {
+        if (!isLoggingOut) {
+            setShowLogoutModal(false);
         }
     };
 
     return (
         <>
-            {/* Skip to main content link for keyboard users */}
-            <Link 
-                ref={skipLinkRef}
+            {/* Skip to main content */}
+            <Link
                 href="#main-content"
-                onClick={handleSkipToMain}
-                className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-100000 bg-accent text-white px-4 py-2 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-accent transform transition-all duration-200 focus:scale-105"
+                className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-100000 bg-emerald-600 text-white px-4 py-2 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-emerald-600"
             >
                 Skip to main content
             </Link>
 
             <header
-                className={`fixed top-0 left-0 w-full z-99999 transition-all duration-300 ease-in-out ${
-                    showBg 
-                        ? "bg-white/95 dark:bg-slate-900/95 backdrop-blur-md shadow-lg border-b border-slate-200 dark:border-slate-700" 
+                className={`fixed top-0 left-0 w-full z-9999 transition-all duration-300 ${showBg
+                        ? "bg-white/95 dark:bg-slate-900/95 backdrop-blur-md shadow-lg border-b border-slate-200 dark:border-slate-700"
                         : "bg-transparent"
-                } ${navbarActive ? "translate-y-0" : "-translate-y-full"}`}
+                    } ${navbarActive ? "translate-y-0" : "-translate-y-full"}`}
                 role="banner"
             >
-                {/* <BgPattern /> */}
-                <div className="inner-wrapper px-2 xs:px-4">
-                    <nav
-                        className="inner-wrapper flex justify-between items-center py-4"
-                        role="navigation"
-                        aria-label="Main navigation"
-                    >
-                        <div className="flex items-center gap-8">
-                            {/* Logo */}
-                            <Link
-                                href="/"
-                                className="group focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 rounded-lg transition-all duration-200"
-                                aria-label={`${companyInfo.name} - Go to homepage`}
-                            >
-                                <div className="relative">
-                                    <Image
-                                        src={logo}
-                                        alt={`${companyInfo.name} Logo`}
-                                        width={120}
-                                        height={40}
-                                        priority
-                                        className="h-10 w-auto object-contain group-hover:scale-105 transition-transform duration-200 rounded-lg"
-                                    />
-                                    {/* Accessible company info for screen readers */}
-                                    <span className="sr-only">
-                                        {companyInfo.name} - {companyInfo.tagline}, {companyInfo.location}
-                                    </span>
-                                </div>
-                            </Link>
-
-                            {/* Desktop Navigation */}
-                            <div className="hidden lg:flex items-center space-x-1" role="menubar">
-                                {navLinks.map((link) => {
-                                    const isActive = pathname === link.url;
-                                    return (
-                                        <Link
-                                            key={link.id}
-                                            href={link.url}
-                                            role="menuitem"
-                                            className={`relative px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 ${
-                                                isActive
-                                                    ? "text-accent bg-accent/10 shadow-sm"
-                                                    : "text-slate-700 dark:text-slate-300 hover:text-accent hover:bg-accent/5"
-                                            }`}
-                                            aria-current={isActive ? "page" : undefined}
-                                        >
-                                            {link.title}
-                                            {isActive && (
-                                                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-accent rounded-full" />
-                                            )}
-                                        </Link>
-                                    );
-                                })}
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-4">
-                            {/* Theme Switch */}
-                            <ThemeSwitch />
-
-                            {/* CTA Button - Desktop */}
-                            <div className="hidden md:block">
-                                <Link
-                                    href="/contact"
-                                    className="bg-linear-to-r from-primary to-primary-100 hover:from-primary-100 hover:to-primary-200 text-white px-6 py-2.5 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transform hover:scale-105 shadow-lg hover:shadow-xl"
-                                >
-                                    Contact us
-                                </Link>
-                            </div>
-
-                            {/* Mobile menu button */}
-                            <button
-                                ref={menuButtonRef}
-                                className="lg:hidden p-2.5 bg-linear-to-br from-primary to-primary-100 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary transition-all duration-200 hover:scale-105 shadow-lg"
-                                aria-label={mobileNavMenuActive ? "Close mobile menu" : "Open mobile menu"}
-                                aria-expanded={mobileNavMenuActive}
-                                aria-controls="mobile-navigation"
-                                onClick={() => setMobileNavMenuActive(true)}
-                            >
-                                <Menu size={20} aria-hidden="true" />
-                            </button>
-                        </div>
-                    </nav>
-                </div>
-            </header>
-
-            {/* Mobile navigation overlay */}
-            <div
-                ref={mobileMenuRef}
-                id="mobile-navigation"
-                className={`fixed inset-0 bg-white dark:bg-slate-900 transition-all duration-300 ease-out ${
-                    mobileNavMenuActive
-                        ? "z-999999 opacity-100 visible"
-                        : "-z-10 opacity-0 invisible"
-                }`}
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="mobile-nav-title"
-                aria-describedby="mobile-nav-description"
-            >
-                {/* Screen reader announcements */}
-                <div className="sr-only">
-                    <h2 id="mobile-nav-title">Mobile Navigation Menu</h2>
-                    <p id="mobile-nav-description">Use tab to navigate through menu items, or press escape to close</p>
-                </div>
-
-                <div className="flex flex-col h-full">
-                    {/* Mobile Header */}
-                    <div className="flex justify-between items-center p-2 border-b border-slate-200 dark:border-slate-700">
-                        <div className="flex items-center">
-                            <Image
-                                src={logo}
-                                alt={`${companyInfo.name} Logo`}
-                                width={100}
-                                height={32}
-                                className="h-8 w-auto object-contain"
-                            />
-                        </div>
-                        <button
-                            ref={closeButtonRef}
-                            className="p-2 bg-linear-to-br from-accent to-accent-50 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-accent transition-all duration-200 hover:scale-105"
-                            aria-label="Close mobile navigation menu"
-                            onClick={closeMobileMenu}
+                <nav
+                    className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+                    role="navigation"
+                    aria-label="Main navigation"
+                >
+                    <div className="flex justify-between items-center h-16 sm:h-20">
+                        {/* Logo */}
+                        <Link
+                            href="/"
+                            className="flex items-center gap-2 sm:gap-3 group focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 rounded-lg"
+                            aria-label="Niveel Hub - Go to homepage"
                         >
-                            <X size={20} aria-hidden="true" />
-                        </button>
-                    </div>
+                            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl overflow-hidden ring-2 ring-emerald-500/30 group-hover:ring-emerald-500 transition-all">
+                                <BookOpen className="w-full h-full p-2 text-emerald-600" aria-hidden="true" />
+                            </div>
+                            <div className="hidden sm:block">
+                                <h1 className="big-text-5 font-bold text-slate-900 dark:text-white">
+                                    Niveel Hub
+                                </h1>
+                                <p className="small-text-2 text-slate-600 dark:text-slate-400 -mt-0.5">
+                                    Learn Programming
+                                </p>
+                            </div>
+                        </Link>
 
-                    {/* Mobile Navigation Links */}
-                    <nav className="flex-1 overflow-y-auto p-2" role="navigation" aria-label="Mobile navigation">
-                        <ul className="space-y-2" role="menu">
+                        {/* Desktop Navigation */}
+                        <div className="hidden lg:flex items-center gap-1">
                             {navLinks.map((link) => {
                                 const isActive = pathname === link.url;
                                 return (
-                                    <li key={link.id} role="none">
-                                        <Link
-                                            href={link.url}
-                                            role="menuitem"
-                                            className={`flex items-center justify-between p-2 rounded-xl text-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 ${
-                                                isActive
-                                                    ? "text-accent bg-accent/10 shadow-sm border-l-4 border-accent"
-                                                    : "text-slate-700 dark:text-slate-300 hover:text-accent hover:bg-accent/5 border-l-4 border-transparent"
-                                            }`}
-                                            onClick={closeMobileMenu}
-                                            aria-current={isActive ? "page" : undefined}
-                                        >
-                                            <span>{link.title}</span>
-                                            {isActive && (
-                                                <div className="w-2 h-2 bg-accent rounded-full" />
-                                            )}
-                                        </Link>
-                                    </li>
+                                    <Link
+                                        key={link.id}
+                                        href={link.url}
+                                        className={`px-4 py-2 rounded-lg normal-text font-medium transition-all ${isActive
+                                                ? "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20"
+                                                : "text-slate-700 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                            } focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2`}
+                                        aria-current={isActive ? "page" : undefined}
+                                    >
+                                        {link.title}
+                                    </Link>
                                 );
                             })}
-                        </ul>
-
-                        {/* Mobile CTA Section */}
-                        <div className="mt-8 pt-8 border-t border-slate-200 dark:border-slate-700">
-                            <Link
-                                href="/contact"
-                                className="block w-full text-center bg-linear-to-r from-primary to-primary-100 hover:from-primary-100 hover:to-primary-200 text-white py-4 px-6 rounded-xl font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary shadow-lg mb-4 transform hover:scale-[1.02]"
-                                onClick={closeMobileMenu}
-                            >
-                                Contact us
-                            </Link>
-                            <div className="text-center text-sm text-slate-600 dark:text-slate-400">
-                                {companyInfo.name} • {companyInfo.location}
-                            </div>
                         </div>
+
+                        {/* Right Section */}
+                        <div className="flex items-center gap-3">
+                            {isAuthenticated && user ? (
+                                <ProfileDropdown user={user} onLogoutClick={handleLogoutClick} />
+                            ) : ( 
+                                <div className="flex items-center gap-2">
+                                    <Link
+                                        href="/login"
+                                        className="hidden sm:inline-flex px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 normal-text font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400"
+                                    >
+                                        Login
+                                    </Link>
+                                    <Link
+                                        href="/register"
+                                        className="inline-flex px-4 py-2 rounded-lg bg-linear-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 normal-text font-medium text-white shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40 transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+                                    >
+                                        Sign Up
+                                    </Link>
+                                </div>
+                            )}
+
+                            {/* Mobile Menu Button */}
+                            <button
+                                ref={menuButtonRef}
+                                onClick={() => setMobileNavMenuActive(true)}
+                                className="lg:hidden p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                aria-label="Open mobile menu"
+                                aria-expanded={mobileNavMenuActive}
+                            >
+                                <Menu className="w-6 h-6" aria-hidden="true" />
+                            </button>
+                        </div>
+                    </div>
+                </nav>
+            </header>
+
+            {/* Mobile Navigation */}
+            <div
+                ref={mobileMenuRef}
+                className={`fixed inset-0 bg-white dark:bg-slate-900 z-99999 transition-all duration-300 ${mobileNavMenuActive
+                        ? "opacity-100 visible"
+                        : "opacity-0 invisible pointer-events-none"
+                    }`}
+                role="dialog"
+                aria-modal="true"
+                aria-label="Mobile navigation"
+            >
+                {/* Mobile Header */}
+                <div className="flex justify-between items-center p-4 border-b border-slate-200 dark:border-slate-700">
+                    <div className="flex items-center gap-2">
+                        <BookOpen className="w-8 h-8 text-emerald-600" aria-hidden="true" />
+                        <span className="normal-text font-bold text-slate-900 dark:text-white">
+                            Niveel Hub
+                        </span>
+                    </div>
+                    <button
+                        ref={closeButtonRef}
+                        onClick={closeMobileMenu}
+                        className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        aria-label="Close mobile menu"
+                    >
+                        <X className="w-6 h-6" aria-hidden="true" />
+                    </button>
+                </div>
+
+                {/* Mobile Links */}
+                <div className="overflow-y-auto h-[calc(100vh-73px)] p-6">
+                    <nav className="space-y-2 mb-6">
+                        {navLinks.map((link) => {
+                            const isActive = pathname === link.url;
+                            return (
+                                <Link
+                                    key={link.id}
+                                    href={link.url}
+                                    onClick={closeMobileMenu}
+                                    className={`flex items-center justify-between px-4 py-3 rounded-xl big-text-5 font-medium transition-all ${isActive
+                                            ? "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border-l-4 border-emerald-600"
+                                            : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border-l-4 border-transparent"
+                                        } focus:outline-none focus:ring-2 focus:ring-emerald-500`}
+                                    aria-current={isActive ? "page" : undefined}
+                                >
+                                    <span>{link.title}</span>
+                                    {isActive && (
+                                        <div className="w-2 h-2 bg-emerald-600 rounded-full" aria-hidden="true" />
+                                    )}
+                                </Link>
+                            );
+                        })}
                     </nav>
+
+                    {/* Mobile Auth Section - Only show Login/Signup when NOT authenticated */}
+                    {!isAuthenticated && !user && (
+                        <div className="space-y-3 pt-6 border-t border-slate-200 dark:border-slate-700">
+                            <Link
+                                href="/login"
+                                onClick={closeMobileMenu}
+                                className="block w-full text-center px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 normal-text font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                            >
+                                Login
+                            </Link>
+                            <Link
+                                href="/register"
+                                onClick={closeMobileMenu}
+                                className="block w-full text-center px-4 py-3 rounded-lg bg-linear-to-r from-emerald-600 to-emerald-700 normal-text font-medium text-white shadow-lg transition-all"
+                            >
+                                Sign Up
+                            </Link>
+                        </div>
+                    )}
                 </div>
             </div>
 
-            {/* Global styles for accessibility */}
+            {/* Logout Modal */}
+            <LogoutModal
+                isOpen={showLogoutModal}
+                onClose={handleLogoutCancel}
+                onConfirm={handleLogoutConfirm}
+                isLoading={isLoggingOut}
+                userName={user ? `${user.first_name} ${user.last_name}` : undefined}
+            />
+
+            {/* Global Accessibility Styles */}
             <style jsx global>{`
-                .sr-only {
-                    position: absolute;
-                    width: 1px;
-                    height: 1px;
-                    padding: 0;
-                    margin: -1px;
-                    overflow: hidden;
-                    clip: rect(0, 0, 0, 0);
-                    white-space: nowrap;
-                    border: 0;
-                }
-                
-                .focus\\:not-sr-only:focus {
-                    position: static;
-                    width: auto;
-                    height: auto;
-                    padding: 0.5rem 1rem;
-                    margin: 0;
-                    overflow: visible;
-                    clip: auto;
-                    white-space: normal;
-                }
+        .sr-only {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          padding: 0;
+          margin: -1px;
+          overflow: hidden;
+          clip: rect(0, 0, 0, 0);
+          white-space: nowrap;
+          border: 0;
+        }
 
-                [data-mobile-nav-open="true"] {
-                    overflow: hidden !important;
-                }
-
-                /* Smooth focus transitions */
-                * {
-                    transition-property: box-shadow, outline;
-                    transition-duration: 200ms;
-                }
-
-                /* Enhanced focus indicators for better visibility */
-                *:focus-visible {
-                    outline: 2px solid var(--color-accent);
-                    outline-offset: 2px;
-                }
-            `}</style>
+        .focus\\:not-sr-only:focus {
+          position: static;
+          width: auto;
+          height: auto;
+          padding: 0.5rem 1rem;
+          margin: 0;
+          overflow: visible;
+          clip: auto;
+          white-space: normal;
+        }
+      `}</style>
         </>
     );
 };

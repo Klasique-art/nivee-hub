@@ -44,9 +44,7 @@ export default async function RootLayout({
         <ToastProvider>
           <Providers>
             <Analytics />
-            <Navbar />
             {children}
-            <Footer />
           </Providers>
         </ToastProvider>
       </body>

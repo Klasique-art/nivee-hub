@@ -85,7 +85,7 @@ const HomePage = async () => {
             <WhoWeAreSection />
 
             {/* Statistics Section */}
-            <StatsSection />
+            {/* <StatsSection /> */}
 
             {/* Call-to-Action Section */}
             <CTASection />

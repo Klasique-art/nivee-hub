@@ -14,6 +14,11 @@ export interface FooterSection {
     title: string;
     links: FooterLink[];
 }
+export interface FooterSection {
+    id: number;
+    title: string;
+    links: FooterLink[];
+}
 export interface SocialLink {
     id: number;
     name: string;
@@ -29,3 +34,4 @@ export interface ContactInfo {
     icon: any;
     href?: string;
 }
+

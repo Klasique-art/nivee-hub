@@ -19,8 +19,8 @@ export const navLinks: NavLink[] = [
 ];
 
 export const companyInfo = {
-    name: "Tecotran Global Limited",
-    tagline: "Innovative Tech Solutions",
+    name: "Nivee Hub",
+    tagline: "Programming Made Easy",
     location: "Ghana"
 };
 
@@ -33,25 +33,14 @@ export const footerSections: FooterSection[] = [
             { id: 2, title: "Our Team", url: "/team" },
         ]
     },
-    {
-        id: 2,
-        title: "Services",
-        links: [
-            { id: 1, title: "Web Development", url: "/services/web-development" },
-            { id: 2, title: "Mobile Apps", url: "/services/mobile-apps" },
-            { id: 3, title: "Cloud Solutions", url: "/services/cloud" },
-            { id: 4, title: "AI & Machine Learning", url: "/services/ai-ml" },
-            { id: 5, title: "Consulting", url: "/services/consulting" }
-        ]
-    },
-    {
-        id: 3,
-        title: "Resources",
-        links: [
-            { id: 1, title: "Articles", url: "/articles" },
-            // { id: 2, title: "Sample Projects", url: "/projects" },
-        ]
-    },
+    // {
+    //     id: 3,
+    //     title: "Resources",
+    //     links: [
+    //         { id: 1, title: "Articles", url: "/articles" },
+    //         // { id: 2, title: "Sample Projects", url: "/projects" },
+    //     ]
+    // },
     {
         id: 4,
         title: "Support",
@@ -83,6 +72,4 @@ export const contactInfo: ContactInfo[] = [
 export const legalLinks: FooterLink[] = [
     { id: 1, title: "Privacy Policy", url: "/privacy" },
     { id: 2, title: "Terms of Service", url: "/terms" },
-    { id: 4, title: "Accessibility", url: "/accessibility" },
-    { id: 5, title: "Sitemap", url: "/sitemap" }
 ];
