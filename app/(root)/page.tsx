@@ -1,7 +1,7 @@
 import React from 'react'
 import type { Metadata } from 'next';
 
-import { HeroSection, StatsSection, CTASection, WhoWeAreSection } from '@/components'
+import { HeroSection, CTASection, WhoWeAreSection } from '@/components'
 
 export const metadata: Metadata = {
     title: 'Nivee Hub | Online Learning Platform for Skill Development & Professional Courses',
@@ -83,9 +83,6 @@ const HomePage = async () => {
 
             {/* Who We Are Section */}
             <WhoWeAreSection />
-
-            {/* Statistics Section */}
-            {/* <StatsSection /> */}
 
             {/* Call-to-Action Section */}
             <CTASection />

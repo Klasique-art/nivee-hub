@@ -17,3 +17,23 @@ export { default as CoursesClient } from './courses/CoursesClient';
 export { default as CourseFilters } from './courses/CourseFilters';
 export { default as CoursesHero } from './courses/CoursesHero';
 export { default as CourseCard } from './courses/CourseCard';
+export { default as CourseDetailsHero } from './courses/CourseDetailsHero';
+export { default as CourseDetailsContent } from './courses/CourseDetailsContent';
+export { default as CourseDetailsSidebar } from './courses/CourseDetailsSidebar';
+export { default as CourseEnrollmentCard } from './courses/CourseEnrollmentCard';
+// dashboard
+export { default as DashboardNav } from './dashboard/DashboardNav';
+export { default as DashboardTopBar } from './dashboard/DashboardTopBar';
+export { default as DashboardSideBar } from './dashboard/DashboardSideBar';
+export { default as ProfileCard } from './dashboard/ProfileCard';
+export { default as DashboardOverview } from './dashboard/DashboardOverview';
+export { default as DashboardQuickActions } from './dashboard/DashboardQuickActions';
+export { default as DashboardMyCourses } from './dashboard/DashboardMyCourses';
+export { default as DashboardUpcomingDeadlines } from './dashboard/DashboardUpcomingDeadlines';
+export { default as DashboardLearningProgress } from './dashboard/DashboardLearningProgress';
+export { default as DashboardRecentActivity } from './dashboard/DashboardRecentActivity';
+// dashboard courses
+export { default as DashboardEnrolledCourseCard } from './dashboard/courses/DashboardEnrolledCourseCard';
+// auth
+export { default as LoginForm } from './auth/LoginForm';
+export { default as SignupForm } from './auth/SignupForm';

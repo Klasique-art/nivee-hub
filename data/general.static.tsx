@@ -33,14 +33,6 @@ export const footerSections: FooterSection[] = [
             { id: 2, title: "Our Team", url: "/team" },
         ]
     },
-    // {
-    //     id: 3,
-    //     title: "Resources",
-    //     links: [
-    //         { id: 1, title: "Articles", url: "/articles" },
-    //         // { id: 2, title: "Sample Projects", url: "/projects" },
-    //     ]
-    // },
     {
         id: 4,
         title: "Support",

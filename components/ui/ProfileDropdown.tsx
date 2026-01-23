@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ChevronDown, LayoutDashboard, BookOpen, Settings, LogOut } from "lucide-react";
+
 import type { CurrentUser } from "@/types/user.types";
 
 interface MenuItem {
@@ -31,16 +32,16 @@ const ProfileDropdown = ({ user, onLogoutClick }: ProfileDropdownProps) => {
             label: "Dashboard",
             icon: <LayoutDashboard className="w-4 h-4" />,
             href: user.role === "student"
-                ? "/dashboard/student"
+                ? "/dashboard"
                 : user.role === "instructor"
                     ? "/dashboard/instructor"
                     : "/dashboard/admin",
         },
         {
-            label: user.role === "student" ? "My Cohorts" : "Teaching Cohorts",
+            label: user.role === "student" ? "My Courses" : "Teaching Cohorts",
             icon: <BookOpen className="w-4 h-4" />,
             href: user.role === "student"
-                ? "/dashboard/student/cohorts"
+                ? "/dashboard/student/courses"
                 : "/dashboard/instructor/cohorts",
         },
         {
