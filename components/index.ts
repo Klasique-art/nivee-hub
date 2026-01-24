@@ -7,6 +7,7 @@ export { default as ThemeSwitch } from './ui/ThemeSwitch';
 export { default as BgPattern } from './ui/BgPattern';
 export { default as LogoutModal } from './ui/LogoutModal';
 export { default as ProfileDropdown } from './ui/ProfileDropdown';
+export { default as AppButton } from './ui/AppButton';
 // home
 export { default as HeroSection } from './home/HeroSection';
 export { default as StatsSection } from './home/StatsSection';
@@ -37,3 +38,10 @@ export { default as DashboardEnrolledCourseCard } from './dashboard/courses/Dash
 // auth
 export { default as LoginForm } from './auth/LoginForm';
 export { default as SignupForm } from './auth/SignupForm';
+// forms
+export {default as AppForm} from './form/AppForm';
+export {default as AppFormField} from './form/AppFormField';
+export {default as AppErrorMessage} from './form/AppErrorMessage';
+export {default as FormLoader} from './form/FormLoader';
+export {default as SubmitButton} from './form/SubmitButton';
+export {default as TextInput} from './form/TextInput';
