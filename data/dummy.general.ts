@@ -16,11 +16,6 @@ export const currentUser: CurrentUser = {
     receive_push_notifications: true,
     is_active: true,
     email_verified: true,
-    is_deleted: false,
-    is_staff: false,
-    is_superuser: false,
     created_at: "2024-01-15T10:30:00Z",
     updated_at: "2024-01-20T14:45:00Z",
-    last_login_at: "2024-01-22T08:15:00Z",
-    deleted_at: null
 };

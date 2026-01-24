@@ -226,7 +226,7 @@ const Navbar = ({ isAuthenticated = false, user = null }: NavbarProps) => {
                                         Login
                                     </Link>
                                     <Link
-                                        href="/register"
+                                        href="/signup"
                                         className="inline-flex px-4 py-2 rounded-lg bg-linear-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 normal-text font-medium text-white shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40 transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
                                     >
                                         Sign Up
@@ -314,7 +314,7 @@ const Navbar = ({ isAuthenticated = false, user = null }: NavbarProps) => {
                                 Login
                             </Link>
                             <Link
-                                href="/register"
+                                href="/signup"
                                 onClick={closeMobileMenu}
                                 className="block w-full text-center px-4 py-3 rounded-lg bg-linear-to-r from-emerald-600 to-emerald-700 normal-text font-medium text-white shadow-lg transition-all"
                             >

@@ -71,13 +71,6 @@ const DashboardSideBar = () => {
                         );
                     })}
                 </nav>
-
-                {/* Footer */}
-                <div className="p-4 border-t border-slate-200 dark:border-slate-700">
-                    <p className="small-text text-slate-500 dark:text-slate-400 text-center">
-                        © 2024 Niveel Hub
-                    </p>
-                </div>
             </div>
         </aside>
     );
